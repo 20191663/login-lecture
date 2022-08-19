@@ -17,9 +17,14 @@ class User {
     }
     return { success: false, msg: "아이디를 확인하세요." };
   }
-  register() {
+  async register() {
     const body = this.body;
-    UserStorage.save(body);
+    try {
+      const response = await UserStorage.save(body);
+      return response;
+    } catch (err) {
+      return { success: false, msg: err };
+    }
   }
 }
 
