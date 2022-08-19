@@ -17,6 +17,10 @@ class User {
     }
     return { success: false, msg: "아이디를 확인하세요." };
   }
+  register() {
+    const body = this.body;
+    UserStorage.save(body);
+  }
 }
 
 module.exports = User;
