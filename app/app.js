@@ -2,6 +2,7 @@
 
 //모듈
 const express = require("express");
+require("dotenv").config();
 const app = express();
 
 //라우팅

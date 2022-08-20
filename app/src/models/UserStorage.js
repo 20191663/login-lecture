@@ -1,59 +1,27 @@
 "use Strict";
 
-const fs = require("fs").promises;
+const db = require("../config/db");
 
 class UserStorage {
-  static #getUserInfo(data, id) {
-    const users = JSON.parse(data);
-    const idx = users.id.indexOf(id);
-    const usersKeys = Object.keys(users);
-    const userInfo = usersKeys.reduce((newUser, info) => {
-      newUser[info] = users[info][idx];
-      return newUser;
-    }, {});
-    return userInfo;
-  }
-
-  static #getUsers(data, isAll, fields) {
-    const users = JSON.parse(data);
-    if (isAll) return users;
-    const newUsers = fields.reduce((newUsers, field) => {
-      if (users.hasOwnProperty(field)) {
-        newUsers[field] = users[field];
-      }
-      return newUsers;
-    }, {});
-    return newUsers;
-  }
-
   static getUserInfo(id) {
-    return fs
-      .readFile("./app/src/databases/users.json")
-      .then((data) => {
-        return this.#getUserInfo(data, id);
-      })
-      .catch(console.error);
-  }
-
-  static getUsers(isAll, ...fields) {
-    return fs
-      .readFile("./app/src/databases/users.json")
-      .then((data) => {
-        return this.#getUsers(data, isAll, fields);
-      })
-      .catch(console.error);
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE id = ?;";
+      db.query(query, [id], (err, data) => {
+        if (err) reject(`${err}`);
+        if (!data[0]) reject("아이디를 입력하세요.");
+        resolve(data[0]);
+      });
+    });
   }
 
   static async save(userInfo) {
-    const users = await this.getUsers(true);
-    if (users.id.includes(userInfo.id)) {
-      throw "이미 존재하는 아이디입니다";
-    }
-    users.id.push(userInfo.id);
-    users.name.push(userInfo.name);
-    users.pw.push(userInfo.pw);
-    fs.writeFile("./app/src/databases/users.json", JSON.stringify(users));
-    return { success: true };
+    return new Promise((resolve, reject) => {
+      const query = "INSERT INTO users(id, name, pw) VALUES(?,?,?);";
+      db.query(query, [userInfo.id, userInfo.name, userInfo.pw], (err) => {
+        if (err) reject(`${err}`);
+        resolve({ success: true });
+      });
+    });
   }
 }
 
